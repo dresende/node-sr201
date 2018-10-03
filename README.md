@@ -11,7 +11,7 @@ npm i sr201
 ### Usage
 
 ```js
-const ziffer = require("sr201");
+const sr201 = require("sr201");
 
 sr201.connect("192.168.1.100", 6722).then(async (client) => {
 	await client.on(2);
