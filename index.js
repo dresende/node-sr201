@@ -1,3 +1,6 @@
+const TCP_PORT = 6722;
+const CFG_PORT = 5111;
+
 const EventEmitter = require("events");
 const net          = require("net");
 
@@ -35,12 +38,12 @@ class Host extends EventEmitter {
 		return this._status[index - 1];
 	}
 
-	async info(port = 5111) {
+	async info() {
 		return new Promise(async (resolve, reject) => {
 			let socket = new net.Socket();
 
 			try {
-				await socket.connect(port, this._host);
+				await socket.connect(CFG_PORT, this._host);
 			} catch (err) {
 				return reject(err);
 			}
@@ -109,10 +112,10 @@ class Host extends EventEmitter {
 	}
 }
 
-exports.connect = async function connect(host = "192.168.1.100", port = 6722) {
+exports.connect = async function connect(host = "192.168.1.100") {
 	let socket = new net.Socket();
 
-	await socket.connect(port, host);
+	await socket.connect(TCP_PORT, host);
 
 	return new Host(socket, host);
 };
