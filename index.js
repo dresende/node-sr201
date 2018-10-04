@@ -87,6 +87,54 @@ class Host extends EventEmitter {
 		});
 	}
 
+	async reconfigure(ip, subnet, gateway, dns) {
+		return new Promise(async (resolve, reject) => {
+			let socket = new net.Socket();
+
+			try {
+				await socket.connect(CFG_PORT, this._host);
+			} catch (err) {
+				return reject(err);
+			}
+
+			let set = async (command) => {
+				return new Promise(async (resolve, reject) => {
+					socket.once("data", (buffer) => {
+						let data = buffer.toString();
+
+						if (data[0] != ">" || data[data.length - 1] != ";") {
+							return reject(new Error("Invalid response"));
+						}
+
+						data = data.substr(1, data.length - 2);
+
+						if (data != "OK") {
+							return reject(new Error("Host replied with error"));
+						}
+
+						return resolve();
+					});
+
+					socket.write("#" + command + ";");
+				});
+			};
+
+			try {
+				await set("29876," + ip);
+				await set("39876," + subnet);
+				await set("49876," + gateway);
+				await set("89876," + dns);
+				await set("79876");
+
+				await socket.end();
+			} catch (err) {
+				return reject(err);
+			}
+
+			return resolve();
+		});
+	}
+
 	async end() {
 		await this._socket.end();
 	}
