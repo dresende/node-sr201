@@ -1,14 +1,14 @@
 const EventEmitter = require("events");
 const net          = require("net");
 
-class Client extends EventEmitter {
-	constructor(client) {
+class Host extends EventEmitter {
+	constructor(socket) {
 		super();
 
-		this._client = client;
+		this._socket = socket;
 		this._status = [];
 
-		client.on("data", (buffer) => {
+		socket.on("data", (buffer) => {
 			while (this._status.length < buffer.length) {
 				this._status.push(false);
 			}
@@ -21,22 +21,12 @@ class Client extends EventEmitter {
 			});
 		});
 
-		client.on("end", () => {
+		socket.on("end", () => {
 			this.emit("end");
 		});
 
-		client.on("error", () => {
+		socket.on("error", () => {
 			this.emit("error");
-		});
-	}
-
-	end() {
-		return new Promise((resolve, reject) => {
-			this._client.end((err) => {
-				if (err) return reject(err);
-
-				return resolve();
-			});
 		});
 	}
 
@@ -44,28 +34,20 @@ class Client extends EventEmitter {
 		return this._status[index - 1];
 	}
 
-	on(index) {
-		return new Promise((resolve, reject) => {
-			this._client.write("1" + index, (err) => {
-				if (err) return reject(err);
-
-				this._status[index - 1] = true;
-
-				return resolve();
-			});
-		});
+	async end() {
+		await this._socket.end();
 	}
 
-	off(index) {
-		return new Promise((resolve, reject) => {
-			this._client.write("2" + index, (err) => {
-				if (err) return reject(err);
+	async on(index) {
+		this._socket.write("1" + index);
 
-				this._status[index - 1] = false;
+		this._status[index - 1] = true;
+	}
 
-				return resolve();
-			});
-		});
+	async off(index) {
+		this._socket.write("2" + index);
+
+		this._status[index - 1] = false;
 	}
 
 	delay(ms) {
@@ -77,14 +59,10 @@ class Client extends EventEmitter {
 	}
 }
 
-exports.connect = async (host = "192.168.1.100", port = 6722) => {
-	return new Promise((resolve, reject) => {
-		let client = new net.Socket();
+exports.connect = async function connect(host = "192.168.1.100", port = 6722) {
+	let socket = new net.Socket();
 
-		client.connect(port, host, (err) => {
-			if (err) return reject(err);
+	await socket.connect(port, host);
 
-			return resolve(new Client(client));
-		});
-	});
+	return new Host(socket);
 };
