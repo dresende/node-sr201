@@ -13,7 +13,7 @@ npm i sr201
 ```js
 const sr201 = require("sr201");
 
-sr201.connect("192.168.1.100", 6722).then(async (client) => {
+sr201.connect("192.168.1.100").then(async (client) => {
 	await client.on(2);
 	await client.delay(2000);
 	await client.off(2);
@@ -29,7 +29,7 @@ sr201.connect("192.168.1.100", 6722).then(async (client) => {
 ```js
 const sr201 = require("sr201");
 
-sr201.connect("192.168.1.100", 6722).then(async (client) => {
+sr201.connect("192.168.1.100").then(async (client) => {
 	await client.reconfigure(
 		"192.168.10.123", // ip
 		"255.255.255.0",  // mask
